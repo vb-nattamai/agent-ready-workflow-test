@@ -186,4 +186,8 @@ The `PYTHONPATH` environment variable may also need to include the repo root so 
 
 **Why it breaks things:** Flask's built-in `abort(404)` and `abort(400)` return HTML error pages by default, not JSON. Calling `response.get_json()` on these responses returns `None`. Any assertion on `.json` or `.get_json()` keys will raise a `TypeError` or `AssertionError` that looks like a test logic bug but is actually a Flask behaviour issue.
 
+**What to do instead:** Assert on the HTTP status code directly (`assert response.status_code == 404`) rather than on the response body. If you genuinely need JSON error bodies, add a custom error handler in `src/app.py` using `@app.errorhandler(404)` that returns `jsonify({"error": "..."})` — but only if the task explicitly requires it. When you do add a custom error handler, update the relevant tests at the same time. Never assume an error response is JSON without first checking that a custom error handler is in place.
+
+---
+
 **What to do
