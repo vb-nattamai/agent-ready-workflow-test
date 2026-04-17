@@ -1,1 +1,68 @@
-{"static":{"project_name":"test"},"dynamic":{"last_scanned":"2026-04-16T00:00:00Z"}}
+{
+  "static": {
+    "project_name": "test"
+  },
+  "dynamic": {
+    "last_scanned": "2026-04-17T12:22:19.886349+00:00",
+    "secondary_languages": [],
+    "build_system": "pip",
+    "build_command": "pip install -r requirements.txt",
+    "install_command": "pip install -r requirements.txt -r requirements-dev.txt",
+    "run_command": "python -m flask --app src/app run",
+    "test_framework": "pytest",
+    "test_directory": "tests",
+    "source_directories": [
+      "src"
+    ],
+    "module_layout": {
+      "src": "src",
+      "tests": "tests"
+    },
+    "architecture_summary": "Single-process Flask application following a simple two-layer architecture: route handlers in src/app.py and domain models plus an in-memory store in src/models.py. The OrderStore class acts as a repository abstraction over a dict, designed to be swapped for a real database. There is no persistence layer, ORM, or external service dependency.",
+    "key_components": [
+      {
+        "name": "app",
+        "path": "src/app.py",
+        "responsibility": "Flask application defining all REST API route handlers (health, create, get, list, cancel orders)."
+      },
+      {
+        "name": "models",
+        "path": "src/models.py",
+        "responsibility": "Domain models (Order dataclass) and in-memory OrderStore repository."
+      },
+      {
+        "name": "test_orders",
+        "path": "tests/test_orders.py",
+        "responsibility": "Test suite covering the order API endpoints."
+      }
+    ],
+    "agent_safe_operations": [
+      "Adding new endpoints in src/app.py",
+      "Adding new model classes or fields in src/models.py",
+      "Adding new test files under tests/",
+      "Adding new Python modules under src/",
+      "Updating requirements.txt or requirements-dev.txt with new dependencies",
+      "Running pytest tests/ -v to verify changes"
+    ],
+    "agent_forbidden_operations": [
+      "Modifying CI workflow files under .github/workflows/",
+      "Modifying agent-context.json directly",
+      "Removing or renaming existing API endpoints without explicit instruction",
+      "Introducing breaking changes to the Order.to_dict() serialization format",
+      "Replacing the in-memory store with a database without explicit instruction"
+    ],
+    "potential_pitfalls": [
+      "The app module uses relative imports (from .models import ...), so it must be run as a package (python -m flask --app src/app run), not directly with python src/app.py.",
+      "OrderStore is instantiated at module level in src/app.py \u2014 state resets on every process restart; tests must account for shared in-memory state or use Flask's test client.",
+      "The cancel endpoint does not guard against non-cancellable statuses beyond 'cancelled' (e.g., a 'shipped' status would still be cancellable).",
+      "No CORS, authentication, or rate-limiting middleware is configured \u2014 adding these may affect existing test expectations.",
+      "Flask abort() returns HTML error pages by default, not JSON \u2014 test assertions on error responses need to handle this."
+    ],
+    "conventions": {
+      "naming": "snake_case",
+      "structure": "single-package"
+    },
+    "has_ci": true,
+    "has_openapi": false
+  }
+}
