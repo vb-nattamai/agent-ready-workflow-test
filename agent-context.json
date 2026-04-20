@@ -1,1 +1,72 @@
-{"static":{"project_name":"test"},"dynamic":{"last_scanned":"2026-04-16T00:00:00Z"}}
+{
+  "static": {
+    "project_name": "test"
+  },
+  "dynamic": {
+    "last_scanned": "2026-04-20T10:28:41.418910+00:00",
+    "secondary_languages": [],
+    "build_system": "pip",
+    "build_command": "pip install -r requirements.txt",
+    "install_command": "pip install -r requirements.txt -r requirements-dev.txt",
+    "run_command": "python -m flask --app src/app run",
+    "test_framework": "pytest",
+    "test_directory": "tests",
+    "source_directories": [
+      "src"
+    ],
+    "module_layout": {
+      "src": "src",
+      "tests": "tests"
+    },
+    "architecture_summary": "Single-process Flask application exposing a REST API for order management. Domain models (Order, OrderStore) live in src/models.py with an in-memory dict-based store, while src/app.py defines all HTTP routes. Tests use pytest with Flask's built-in test client.",
+    "key_components": [
+      {
+        "name": "Flask App",
+        "path": "src/app.py",
+        "responsibility": "Defines all REST API routes (health, create, get, list, cancel orders) and request/response handling."
+      },
+      {
+        "name": "Domain Models",
+        "path": "src/models.py",
+        "responsibility": "Contains the Order dataclass and OrderStore in-memory persistence layer."
+      },
+      {
+        "name": "Order Tests",
+        "path": "tests/test_orders.py",
+        "responsibility": "Test suite covering the order API endpoints."
+      },
+      {
+        "name": "CI Workflow",
+        "path": ".github/workflows/ci.yml",
+        "responsibility": "GitHub Actions workflow that installs dependencies and runs pytest on push/PR."
+      }
+    ],
+    "agent_safe_operations": [
+      "Adding new endpoints in src/app.py",
+      "Adding new model classes or fields in src/models.py",
+      "Adding new test files under tests/",
+      "Running pytest tests/ -v to verify changes",
+      "Reading agent-context.json for project metadata"
+    ],
+    "agent_forbidden_operations": [
+      "Modifying CI workflow files under .github/workflows/",
+      "Modifying or deleting files under .agent-ready/",
+      "Changing requirements.txt without explicit instruction",
+      "Replacing the in-memory OrderStore with a database without explicit instruction",
+      "Removing or renaming existing API endpoints without explicit instruction"
+    ],
+    "potential_pitfalls": [
+      "The OrderStore is in-memory \u2014 all data is lost on process restart; tests should not assume persistence across test functions unless sharing the same client fixture.",
+      "src is a namespace package with an empty __init__.py; Flask is invoked with '--app src/app' which requires the working directory to be the repo root.",
+      "The cancel endpoint returns 409 if the order is already cancelled \u2014 agents must handle idempotency correctly.",
+      "There is no requirements-dev.txt checked into the visible file contents but it is referenced in CI; missing or outdated dev dependencies may cause CI failures.",
+      "The .agent-ready/ directory contains a full separate Python project (AgentReady toolkit) \u2014 agents must not confuse it with the main application source."
+    ],
+    "conventions": {
+      "naming": "snake_case",
+      "structure": "single-package"
+    },
+    "has_ci": true,
+    "has_openapi": false
+  }
+}
