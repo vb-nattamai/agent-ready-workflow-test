@@ -1,1 +1,66 @@
-{"static":{"project_name":"test"},"dynamic":{"last_scanned":"2026-04-16T00:00:00Z"}}
+{
+  "static": {
+    "project_name": "test"
+  },
+  "dynamic": {
+    "last_scanned": "2026-04-27T10:54:11.543630+00:00",
+    "secondary_languages": [],
+    "build_system": "pip",
+    "build_command": "",
+    "install_command": "pip install -r requirements.txt -r requirements-dev.txt",
+    "run_command": "python -m flask --app src/app run",
+    "test_framework": "pytest",
+    "test_directory": "tests",
+    "source_directories": [
+      "src"
+    ],
+    "module_layout": {
+      "src": "src",
+      "tests": "tests"
+    },
+    "architecture_summary": "Single-process Flask application exposing a REST API for order management. Domain logic is encapsulated in dataclass-based models and an in-memory OrderStore, while src/app.py defines the HTTP routing layer. The architecture is intentionally minimal with no database; the store is swappable for a persistent backend.",
+    "key_components": [
+      {
+        "name": "App (Flask routes)",
+        "path": "src/app.py",
+        "responsibility": "Defines all HTTP endpoints for order CRUD operations and wires requests to the OrderStore."
+      },
+      {
+        "name": "Models",
+        "path": "src/models.py",
+        "responsibility": "Contains the Order dataclass and the OrderStore in-memory repository."
+      },
+      {
+        "name": "Tests",
+        "path": "tests/test_orders.py",
+        "responsibility": "Test suite covering the order API endpoints."
+      }
+    ],
+    "agent_safe_operations": [
+      "Adding new endpoints in src/app.py",
+      "Adding new fields to the Order dataclass in src/models.py (with defaults for backward compatibility)",
+      "Adding new test cases in tests/test_orders.py",
+      "Adding new model classes in src/models.py",
+      "Refactoring OrderStore internals without changing its public interface"
+    ],
+    "agent_forbidden_operations": [
+      "Removing or renaming existing public API endpoints without updating all callers and tests",
+      "Changing the Order.to_dict() keys as external consumers depend on that schema",
+      "Replacing the in-memory store with a database dependency without adding corresponding setup/migration logic",
+      "Modifying the module-level `store` singleton pattern in app.py in a way that breaks test isolation"
+    ],
+    "potential_pitfalls": [
+      "The OrderStore is a module-level singleton in app.py; state leaks between tests unless each test creates a fresh Flask test client or resets the store.",
+      "Order IDs are random UUIDs, so tests must capture the ID from the creation response rather than hardcoding values.",
+      "The app uses abort() which returns HTML error pages by default, not JSON; custom error handlers may be needed for consistent API responses.",
+      "Order.created_at is set at instantiation time via default_factory, making time-dependent assertions fragile without mocking datetime.",
+      "items is typed as list[dict[str, Any]] with no validation beyond non-emptiness; adding schema validation later could break existing tests."
+    ],
+    "conventions": {
+      "naming": "snake_case",
+      "structure": "single-package"
+    },
+    "has_ci": true,
+    "has_openapi": false
+  }
+}
